@@ -5,12 +5,17 @@ import (
 	"net/http"
 
 	"github.com/Chintukr2004/auth-service/internal/config"
+	"github.com/Chintukr2004/auth-service/internal/database"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
 
 	cfg := config.LoadConfig()
+
+	// db connect
+	db := database.NewPostgresDB(cfg)
+	defer db.Close()
 
 	r := chi.NewRouter()
 

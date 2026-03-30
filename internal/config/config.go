@@ -12,7 +12,7 @@ type Config struct {
 
 	DBHost     string
 	DBPort     string
-	DBuser     string
+	DBUser     string
 	DBPassword string
 	DBName     string
 
@@ -28,8 +28,8 @@ func LoadConfig() *Config {
 	return &Config{
 		Port:       getEnv("PORT", "8080"),
 		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_USER", "postgres"),
-		DBuser:     getEnv("DB_USER", "postges"),
+		DBPort:     getEnv("DB_PORT", "postgres"),
+		DBUser:     getEnv("DB_USER", "postges"),
 		DBName:     getEnv("DB_NAME", "auth_db"),
 		DBPassword: getEnv("DB_PASSWORD", "secret"),
 		JWTSecret:  getEnv("JWT_SECRET", "secret"),
