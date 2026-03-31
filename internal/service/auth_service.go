@@ -1,0 +1,45 @@
+package service
+
+import (
+	"context"
+	"errors"
+
+	"github.com/Chintukr2004/auth-service/internal/model"
+	"github.com/Chintukr2004/auth-service/internal/repository"
+	"github.com/Chintukr2004/auth-service/internal/utils"
+)
+
+type AuthService struct{
+	userRepo *repository.UserRepository
+}
+
+func NewAuthService(userRepo *repository.UserRepository) *AuthService {
+	return &AuthService{userRepo: userRepo}
+}
+
+func (s *AuthService) Register(ctx context.Context, name, email, password string) (*model.User, error){
+	
+	// check if user already exists
+	existingUser, _ := s.userRepo.GetUserByEmail(ctx, email)
+	if existingUser != nil {
+		return nil, errors.New("emial already exists")
+	}
+
+	//hash password
+	hashedpassword, err := utils.HashPassword(password)
+	if err != nil{
+		return nil, err
+	}
+
+	user := &model.User{
+		Name: name,
+		Email: email,
+		PasswordHash: hashedpassword,
+	}
+
+	err = s.userRepo.CreateUser(ctx, user)
+	if err != nil{
+		return nil, err
+	}
+	return user, nil
+}
