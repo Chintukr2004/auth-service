@@ -17,6 +17,9 @@ type Config struct {
 	DBName     string
 
 	JWTSecret string
+
+	AccessTokenExp string
+	RefreshTokenExp string
 }
 
 func LoadConfig() *Config {
@@ -33,6 +36,8 @@ func LoadConfig() *Config {
 		DBName:     getEnv("DB_NAME", "auth_db"),
 		DBPassword: getEnv("DB_PASSWORD", "secret"),
 		JWTSecret:  getEnv("JWT_SECRET", "secret"),
+		AccessTokenExp: getEnv("ACCES_TOKEN_EXP","15m"),
+		RefreshTokenExp: getEnv("REFRESH_TOKEN_EXP", "168h"),
 	}
 }
 

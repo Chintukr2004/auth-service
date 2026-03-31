@@ -25,6 +25,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 
 	r.Post("/api/v1/auth/register", authHandler.Register)
+	r.Post("/api/v1/auth/login", authHandler.Login)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("server is running on port" + cfg.Port))

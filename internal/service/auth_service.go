@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/Chintukr2004/auth-service/internal/model"
 	"github.com/Chintukr2004/auth-service/internal/repository"
@@ -42,4 +43,28 @@ func (s *AuthService) Register(ctx context.Context, name, email, password string
 		return nil, err
 	}
 	return user, nil
+}
+
+func(s *AuthService) Login(ctx context.Context, email, password string, jwtSecret string) (string, string, error){
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
+	if err!=nil{
+		return "","", errors.New("Invalid credentials")
+	}
+	//check password
+	err = utils.CheckPassword(password, user.PasswordHash)
+	if err!= nil{
+		return "", "", errors.New("Invalid credentials")
+	}
+
+	//Generate tokens
+	accessToken, err := utils.GenerateToken(user.ID, jwtSecret, 15*time.Minute)
+	if err != nil{
+		return "","", err
+	}
+
+	refreshToken, err := utils.GenerateToken(user.ID, jwtSecret, 7*24*time.Hour)
+	if err != nil{
+		return "","", err
+	}
+	return accessToken, refreshToken, nil
 }
