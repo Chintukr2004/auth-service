@@ -9,10 +9,11 @@ import (
 
 type AuthHandler struct {
 	authService *service.AuthService
+	jwtSecret string
 }
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService *service.AuthService, jwtSecret string) *AuthHandler {
+	return &AuthHandler{authService: authService, jwtSecret: jwtSecret}
 }
 
 type RegisterRequest struct {
@@ -38,37 +39,34 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-
-type LoginRequest struct{
-	Email string `json:"email"`
+type LoginRequest struct {
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (h *AuthHandler)Login(w http.ResponseWriter, r *http.Request){
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 
-	err:= json.NewDecoder(r.Body).Decode(&req)
-	if err!=nil{
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
 		http.Error(w, "Invalid request ", http.StatusBadRequest)
-		return 
+		return
 	}
 
 	accessToken, refreshToken, err := h.authService.Login(
 		r.Context(),
 		req.Email,
 		req.Password,
-		"your-secret-key",
-
+		h.jwtSecret,
 	)
 
-	if err !=nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return 
+		return
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"access_token" : accessToken,
+		"access_token":  accessToken,
 		"reffres_token": refreshToken,
 	})
 }
-
