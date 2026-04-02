@@ -19,7 +19,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// db connect
-	db := database.NewPostgresDB(cfg)
+	db := database.NewPostgresDB()
 	defer db.Close()
 
 	userRepo := repository.NewUserRepository(db)
