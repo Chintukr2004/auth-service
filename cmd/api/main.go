@@ -37,6 +37,12 @@ func main() {
 	r.Post("/api/v1/auth/refresh", authHandler.Refresh)
 	r.Post("/api/v1/auth/logout", authHandler.Logout)
 
+	r.Group(func(admin chi.Router) {
+		admin.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		admin.Use(middleware.RequiredRole("admin"))
+		admin.Get("/api/v1/admin", userHandler.AdminOnly)
+	})
+
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("server is running on port" + cfg.Port))
 	})

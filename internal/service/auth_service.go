@@ -57,12 +57,12 @@ func (s *AuthService) Login(ctx context.Context, email, password string, jwtSecr
 	}
 
 	//Generate tokens
-	accessToken, err := utils.GenerateToken(user.ID, jwtSecret, 15*time.Minute)
+	accessToken, err := utils.GenerateToken(user.ID, user.Role, jwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(user.ID, jwtSecret, 7*24*time.Hour)
+	refreshToken, err := utils.GenerateToken(user.ID, user.Role, jwtSecret, 7*24*time.Hour)
 	expiresAt := time.Now().Add(7 * 24 * time.Hour)
 	err = s.userRepo.SaveRefreshToken(ctx, user.ID, refreshToken, expiresAt)
 	if err != nil {
@@ -75,14 +75,19 @@ func (s *AuthService) Refresh(ctx context.Context, refreshToken, jwtSecret strin
 	if err != nil {
 		return "", errors.New("invalid refresh token")
 	}
-	newAccessToken, err := utils.GenerateToken(userID, jwtSecret, 15*time.Minute)
+
+	user, err := s.userRepo.GetUserByEmail(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+
+	newAccessToken, err := utils.GenerateToken(user.ID, user.Role, jwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", err
 	}
 	return newAccessToken, nil
 }
 
-
-func(s *AuthService)Logout(ctx context.Context, refreshToken string) error{
+func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 	return s.userRepo.DeleteRefreshToken(ctx, refreshToken)
 }

@@ -46,12 +46,27 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 				http.Error(w, "Invalid user ID", http.StatusUnauthorized)
 				return
 			}
+			role,_ := claims["role"].(string)
 
 			//Add userID to context
 			ctx := context.WithValue(r.Context(), UserIDKey, userID)
-
+			ctx = context.WithValue(ctx, "role", role)
 			next.ServeHTTP(w, r.WithContext(ctx))
 
+		})
+	}
+}
+
+func RequiredRole(requiredRole string)func(http.Handler)http.Handler{
+	return func(next http.Handler) http.Handler{
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+			
+			role, ok:= r.Context().Value("role").(string)
+			if !ok || role != requiredRole {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return 
+			}
+			next.ServeHTTP(w,r)
 		})
 	}
 }

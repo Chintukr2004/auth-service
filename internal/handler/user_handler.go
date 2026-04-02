@@ -21,3 +21,9 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		"user_id": userID,
 	})
 }
+
+func (h *UserHandler) AdminOnly(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Welcome Admin",
+	})
+}
