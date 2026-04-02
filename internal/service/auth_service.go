@@ -81,3 +81,8 @@ func (s *AuthService) Refresh(ctx context.Context, refreshToken, jwtSecret strin
 	}
 	return newAccessToken, nil
 }
+
+
+func(s *AuthService)Logout(ctx context.Context, refreshToken string) error{
+	return s.userRepo.DeleteRefreshToken(ctx, refreshToken)
+}

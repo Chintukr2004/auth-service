@@ -84,3 +84,11 @@ func ( r *UserRepository) GetUserByRefreshToken(ctx context.Context, token strin
 		return userID, err
 		
 }
+
+func (r *UserRepository) DeleteRefreshToken(ctx context.Context, token string)error{
+	query := `
+		DELETE FROM refresh_tokens WHERE token = $1
+		`
+		_, err:= r.db.Exec(ctx, query, token)
+		return err
+}

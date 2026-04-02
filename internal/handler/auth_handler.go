@@ -92,3 +92,28 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		"access_token": newAccessToken,
 	})
 }
+
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (h *AuthHandler) Logout(
+	w http.ResponseWriter, r *http.Request) {
+	var req LogoutRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	err = h.authService.Logout(r.Context(), req.RefreshToken)
+	if err != nil {
+		http.Error(w, "Logout failed", http.StatusUnauthorized)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Logged out successfully",
+	})
+}
