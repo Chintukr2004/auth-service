@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Chintukr2004/auth-service/internal/config"
 	"github.com/Chintukr2004/auth-service/internal/database"
@@ -47,9 +48,13 @@ func main() {
 		w.Write([]byte("server is running on port" + cfg.Port))
 	})
 
-	log.Println("server runnnig on port", cfg.Port)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Println("server runnnig on port", port)
 
-	err := http.ListenAndServe(":"+cfg.Port, r)
+	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
 		log.Fatal("server failed", err)
 	}
