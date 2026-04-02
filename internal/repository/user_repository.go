@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/Chintukr2004/auth-service/internal/model"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -60,4 +61,26 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) SaveRefreshToken(ctx context.Context, userID, token string,expiresAt time.Time) error{
+	query:= `
+		INSERT INTO refresh_tokens (user_id, token, expires_at)
+		VALUES ($1, $2, $3)
+		`
+		_, err := r.db.Exec(ctx,query,userID, token, expiresAt)
+		return err
+}
+
+
+func ( r *UserRepository) GetUserByRefreshToken(ctx context.Context, token string) (string,error){
+	query:= `
+		SELECT user_id FROM refresh_tokens
+		WHERE token = $1 AND expires_at > NOW()
+		`
+
+		var userID string
+		err := r.db.QueryRow(ctx, query, token).Scan(&userID)
+		return userID, err
+		
 }

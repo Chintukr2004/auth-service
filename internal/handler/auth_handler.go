@@ -9,7 +9,7 @@ import (
 
 type AuthHandler struct {
 	authService *service.AuthService
-	jwtSecret string
+	jwtSecret   string
 }
 
 func NewAuthHandler(authService *service.AuthService, jwtSecret string) *AuthHandler {
@@ -68,5 +68,27 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"access_token":  accessToken,
 		"reffres_token": refreshToken,
+	})
+}
+
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	var req RefreshRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	newAccessToken, err := h.authService.Refresh(r.Context(), req.RefreshToken, h.jwtSecret)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"access_token": newAccessToken,
 	})
 }

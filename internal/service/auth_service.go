@@ -10,7 +10,7 @@ import (
 	"github.com/Chintukr2004/auth-service/internal/utils"
 )
 
-type AuthService struct{
+type AuthService struct {
 	userRepo *repository.UserRepository
 }
 
@@ -18,8 +18,8 @@ func NewAuthService(userRepo *repository.UserRepository) *AuthService {
 	return &AuthService{userRepo: userRepo}
 }
 
-func (s *AuthService) Register(ctx context.Context, name, email, password string) (*model.User, error){
-	
+func (s *AuthService) Register(ctx context.Context, name, email, password string) (*model.User, error) {
+
 	// check if user already exists
 	existingUser, _ := s.userRepo.GetUserByEmail(ctx, email)
 	if existingUser != nil {
@@ -28,43 +28,56 @@ func (s *AuthService) Register(ctx context.Context, name, email, password string
 
 	//hash password
 	hashedpassword, err := utils.HashPassword(password)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	user := &model.User{
-		Name: name,
-		Email: email,
+		Name:         name,
+		Email:        email,
 		PasswordHash: hashedpassword,
 	}
 
 	err = s.userRepo.CreateUser(ctx, user)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func(s *AuthService) Login(ctx context.Context, email, password string, jwtSecret string) (string, string, error){
+func (s *AuthService) Login(ctx context.Context, email, password string, jwtSecret string) (string, string, error) {
 	user, err := s.userRepo.GetUserByEmail(ctx, email)
-	if err!=nil{
-		return "","", errors.New("Invalid credentials")
+	if err != nil {
+		return "", "", errors.New("Invalid credentials")
 	}
 	//check password
 	err = utils.CheckPassword(password, user.PasswordHash)
-	if err!= nil{
+	if err != nil {
 		return "", "", errors.New("Invalid credentials")
 	}
 
 	//Generate tokens
 	accessToken, err := utils.GenerateToken(user.ID, jwtSecret, 15*time.Minute)
-	if err != nil{
-		return "","", err
+	if err != nil {
+		return "", "", err
 	}
 
 	refreshToken, err := utils.GenerateToken(user.ID, jwtSecret, 7*24*time.Hour)
-	if err != nil{
-		return "","", err
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	err = s.userRepo.SaveRefreshToken(ctx, user.ID, refreshToken, expiresAt)
+	if err != nil {
+		return "", "", err
 	}
 	return accessToken, refreshToken, nil
+}
+func (s *AuthService) Refresh(ctx context.Context, refreshToken, jwtSecret string) (string, error) {
+	userID, err := s.userRepo.GetUserByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return "", errors.New("invalid refresh token")
+	}
+	newAccessToken, err := utils.GenerateToken(userID, jwtSecret, 15*time.Minute)
+	if err != nil {
+		return "", err
+	}
+	return newAccessToken, nil
 }
