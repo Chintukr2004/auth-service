@@ -47,6 +47,40 @@ func main() {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("server is running on port" + cfg.Port))
 	})
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(`
+		<html>
+		<head>
+			<title>Auth Service</title>
+			<style>
+				body {
+					font-family: Arial;
+					text-align: center;
+					margin-top: 50px;
+				}
+				h1 { color: #4CAF50; }
+				ul { list-style: none; }
+			</style>
+		</head>
+		<body>
+			<h1>🚀 Auth Service</h1>
+			<p>Backend API is running successfully</p>
+
+			<h3>Endpoints:</h3>
+			<ul>
+				<li>/health</li>
+				<li>/api/v1/auth/login</li>
+				<li>/api/v1/auth/refresh</li>
+				<li>/api/v1/users/me</li>
+				<li>/api/v1/admin</li>
+			</ul>
+
+			<p>Made by Chintu Kumar 💻</p>
+		</body>
+		</html>
+	`))
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
